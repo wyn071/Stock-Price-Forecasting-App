@@ -98,12 +98,37 @@ def predict():
         if metrics:
             accuracy_table.append(metrics)
 
+    # --- Plain-language summary: current price vs target date price ---
+    current_price = round(float(data["y"].iloc[-1]), 2)
+    current_date = data["ds"].iloc[-1].strftime("%Y-%m-%d")
+
+    target_row = result.iloc[-1]
+    target_price = round(float(target_row["yhat"]), 2)
+    target_date = target_row["ds"]
+    target_low = round(float(target_row["yhat_lower"]), 2)
+    target_high = round(float(target_row["yhat_upper"]), 2)
+
+    change_amount = round(target_price - current_price, 2)
+    change_percent = round((change_amount / current_price) * 100, 2)
+
+    summary = {
+        "current_price": current_price,
+        "current_date": current_date,
+        "target_price": target_price,
+        "target_date": target_date,
+        "target_low": target_low,
+        "target_high": target_high,
+        "change_amount": change_amount,
+        "change_percent": change_percent
+    }
+
     return jsonify({
         "ticker": ticker,
         "horizon": horizon,
         "history": history.to_dict(orient="records"),
         "forecast": result.to_dict(orient="records"),
-        "accuracy_table": accuracy_table
+        "accuracy_table": accuracy_table,
+        "summary": summary
     })
 
 
