@@ -3,9 +3,23 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Stock Price Predictor</title>
+    <title>Stock Price Forecaster</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+      :root {
+        --bg: #0b0d10;
+        --panel: #14171b;
+        --panel-border: #23272d;
+        --text-primary: #e8e9eb;
+        --text-secondary: #8b9099;
+        --accent: #5b8def;
+        --accent-soft: rgba(91, 141, 239, 0.12);
+        --good: #4ade80;
+        --mid: #facc15;
+        --bad: #f87171;
+        --radius: 10px;
+      }
+
       * {
         margin: 0;
         padding: 0;
@@ -13,156 +27,352 @@
       }
 
       body {
-        font-family: sans-serif;
-        background: #f5f5f5;
-        display: flex;
-        justify-content: center;
-        padding: 40px 20px;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
+        background: var(--bg);
+        color: var(--text-primary);
+        min-height: 100vh;
+        padding: 32px 20px 60px;
       }
 
-      .container {
-        background: white;
-        border-radius: 12px;
-        padding: 40px;
-        width: 100%;
-        max-width: 900px;
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+      .wrap {
+        max-width: 980px;
+        margin: 0 auto;
       }
 
-      h1 {
-        font-size: 24px;
-        margin-bottom: 8px;
-        color: #111;
+      header {
+        margin-bottom: 28px;
       }
 
-      p.subtitle {
-        color: #666;
-        font-size: 14px;
-        margin-bottom: 32px;
+      header h1 {
+        font-size: 22px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
       }
 
-      .input-row {
+      header p {
+        color: var(--text-secondary);
+        font-size: 13.5px;
+        margin-top: 6px;
+      }
+
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--panel-border);
+        border-radius: var(--radius);
+        padding: 24px;
+        margin-bottom: 20px;
+      }
+
+      .controls {
         display: flex;
         gap: 12px;
-        margin-bottom: 32px;
+        flex-wrap: wrap;
+        align-items: flex-end;
       }
 
-      input {
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
         flex: 1;
-        padding: 12px 16px;
-        font-size: 16px;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        outline: none;
-        text-transform: uppercase;
+        min-width: 160px;
       }
 
-      input:focus {
-        border-color: #4f46e5;
+      .field label {
+        font-size: 11.5px;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      select {
+        appearance: none;
+        background: #1b1f24;
+        border: 1px solid var(--panel-border);
+        color: var(--text-primary);
+        padding: 11px 36px 11px 14px;
+        border-radius: 8px;
+        font-size: 14px;
+        cursor: pointer;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238b9099'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 14px center;
+      }
+
+      select:focus {
+        outline: none;
+        border-color: var(--accent);
       }
 
       button {
-        padding: 12px 28px;
-        background: #4f46e5;
+        padding: 11px 26px;
+        background: var(--accent);
         color: white;
-        font-size: 16px;
+        font-size: 14px;
+        font-weight: 500;
         border: none;
         border-radius: 8px;
         cursor: pointer;
+        transition: background 0.15s;
+        height: 42px;
       }
 
       button:hover {
-        background: #4338ca;
+        background: #4a7adb;
       }
       button:disabled {
-        background: #a5b4fc;
+        background: #2a2f37;
+        color: var(--text-secondary);
         cursor: not-allowed;
       }
 
       #status {
-        font-size: 14px;
-        color: #666;
-        margin-bottom: 16px;
-        min-height: 20px;
+        font-size: 13px;
+        color: var(--text-secondary);
+        margin-top: 14px;
+        min-height: 18px;
       }
 
       #error {
-        color: #dc2626;
-        font-size: 14px;
-        margin-bottom: 16px;
-        min-height: 20px;
+        font-size: 13px;
+        color: var(--bad);
+        margin-top: 14px;
+        min-height: 18px;
       }
 
-      #chart-container {
-        display: none;
+      .hidden {
+        display: none !important;
       }
 
-      #chart-title {
+      .chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 18px;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .chart-header h2 {
         font-size: 16px;
         font-weight: 600;
-        color: #111;
+      }
+
+      .badge {
+        font-size: 11.5px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-weight: 500;
+      }
+
+      .badge.good {
+        background: rgba(74, 222, 128, 0.12);
+        color: var(--good);
+      }
+      .badge.mid {
+        background: rgba(250, 204, 21, 0.12);
+        color: var(--mid);
+      }
+      .badge.bad {
+        background: rgba(248, 113, 113, 0.12);
+        color: var(--bad);
+      }
+
+      canvas {
+        max-height: 360px;
+      }
+
+      .accuracy-note {
+        font-size: 12.5px;
+        color: var(--text-secondary);
         margin-bottom: 16px;
+        line-height: 1.5;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+
+      th {
+        text-align: left;
+        color: var(--text-secondary);
+        font-weight: 500;
+        font-size: 11.5px;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--panel-border);
+      }
+
+      td {
+        padding: 12px;
+        border-bottom: 1px solid #1b1f24;
+      }
+
+      tr.active-row td {
+        background: var(--accent-soft);
+      }
+
+      tr.active-row td:first-child {
+        border-radius: 6px 0 0 6px;
+      }
+      tr.active-row td:last-child {
+        border-radius: 0 6px 6px 0;
+      }
+
+      .mape-pill {
+        display: inline-block;
+        padding: 3px 9px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 12.5px;
+      }
+
+      .horizon-label {
+        color: var(--text-primary);
+        font-weight: 500;
+      }
+
+      footer {
+        text-align: center;
+        color: var(--text-secondary);
+        font-size: 12px;
+        margin-top: 32px;
       }
     </style>
   </head>
   <body>
-    <div class="container">
-      <h1>Stock Price Predictor</h1>
-      <p class="subtitle">
-        Enter a stock ticker to see a 365-day price forecast powered by Facebook
-        Prophet.
-      </p>
+    <div class="wrap">
+      <header>
+        <h1>Stock Price Forecaster</h1>
+        <p>
+          Time series forecasting with Facebook Prophet, backtested across
+          multiple horizons.
+        </p>
+      </header>
 
-      <div class="input-row">
-        <input
-          type="text"
-          id="ticker"
-          placeholder="e.g. GOOG, AAPL, TSLA"
-          maxlength="10"
-        />
-        <button id="predictBtn" onclick="predict()">Predict</button>
+      <div class="panel">
+        <div class="controls">
+          <div class="field">
+            <label for="ticker">Ticker</label>
+            <select id="ticker">
+              <option value="GOOG">Google (GOOG)</option>
+              <option value="AAPL">Apple (AAPL)</option>
+              <option value="MSFT">Microsoft (MSFT)</option>
+              <option value="TSLA">Tesla (TSLA)</option>
+              <option value="AMZN">Amazon (AMZN)</option>
+              <option value="META">Meta (META)</option>
+              <option value="NVDA">Nvidia (NVDA)</option>
+              <option value="NFLX">Netflix (NFLX)</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="horizon">Forecast horizon</label>
+            <select id="horizon">
+              <option value="7">1 week</option>
+              <option value="30" selected>30 days</option>
+              <option value="90">90 days</option>
+              <option value="180">180 days</option>
+              <option value="365">365 days</option>
+            </select>
+          </div>
+
+          <button id="predictBtn" onclick="predict()">Run forecast</button>
+        </div>
+
+        <div id="error"></div>
+        <div id="status"></div>
       </div>
 
-      <div id="error"></div>
-      <div id="status"></div>
+      <div id="resultsArea" class="hidden">
+        <div class="panel">
+          <div class="chart-header">
+            <h2 id="chartTitle"></h2>
+            <span id="confidenceBadge" class="badge"></span>
+          </div>
+          <canvas id="myChart"></canvas>
+        </div>
 
-      <div id="chart-container">
-        <div id="chart-title"></div>
-        <canvas id="myChart"></canvas>
+        <div class="panel">
+          <div class="chart-header">
+            <h2>Backtested accuracy by horizon</h2>
+          </div>
+          <p class="accuracy-note">
+            Each row trains Prophet on all data up to a cutoff date, then checks
+            its prediction against what actually happened. Shorter horizons are
+            consistently more reliable — error compounds the further into the
+            future the model is asked to predict.
+          </p>
+          <table id="accuracyTable">
+            <thead>
+              <tr>
+                <th>Horizon</th>
+                <th>MAPE</th>
+                <th>MAE</th>
+                <th>RMSE</th>
+              </tr>
+            </thead>
+            <tbody id="accuracyBody"></tbody>
+          </table>
+        </div>
       </div>
+
+      <footer>
+        Predictions are based on historical price patterns only and do not
+        account for news, earnings, or market events. Not financial advice.
+      </footer>
     </div>
 
     <script>
       let chartInstance = null;
 
+      const HORIZON_LABELS = {
+        7: "1 week",
+        30: "30 days",
+        90: "90 days",
+        180: "180 days",
+        365: "365 days",
+      };
+
+      function mapeBadge(mape) {
+        if (mape < 8) return { cls: "good", text: "High confidence" };
+        if (mape < 20) return { cls: "mid", text: "Moderate confidence" };
+        return { cls: "bad", text: "Low confidence" };
+      }
+
+      function mapePillColor(mape) {
+        if (mape < 8) return "color:#4ade80; background:rgba(74,222,128,0.12);";
+        if (mape < 20)
+          return "color:#facc15; background:rgba(250,204,21,0.12);";
+        return "color:#f87171; background:rgba(248,113,113,0.12);";
+      }
+
       async function predict() {
-        const ticker = document.getElementById("ticker").value.trim();
+        const ticker = document.getElementById("ticker").value;
+        const horizon = parseInt(document.getElementById("horizon").value);
         const btn = document.getElementById("predictBtn");
         const status = document.getElementById("status");
         const error = document.getElementById("error");
-        const chartContainer = document.getElementById("chart-container");
+        const resultsArea = document.getElementById("resultsArea");
 
-        // Clear previous state
         error.textContent = "";
         status.textContent = "";
-        chartContainer.style.display = "none";
+        resultsArea.classList.add("hidden");
 
-        if (!ticker) {
-          error.textContent = "Please enter a stock ticker.";
-          return;
-        }
-
-        // Show loading state
         btn.disabled = true;
-        btn.textContent = "Predicting...";
+        btn.textContent = "Running forecast...";
         status.textContent =
-          "Fetching data and running Prophet model. This may take 20-30 seconds...";
+          "Fetching data and backtesting across all horizons. This can take a minute...";
 
         try {
           const response = await fetch("/predict", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ ticker }),
+            body: JSON.stringify({ ticker, horizon }),
           });
 
           const data = await response.json();
@@ -173,93 +383,165 @@
             return;
           }
 
-          // Extract chart data
-          const labels = data.forecast.map((d) => d.ds);
-          const predicted = data.forecast.map(
-            (d) => Math.round(d.yhat * 100) / 100,
-          );
-          const lower = data.forecast.map(
-            (d) => Math.round(d.yhat_lower * 100) / 100,
-          );
-          const upper = data.forecast.map(
-            (d) => Math.round(d.yhat_upper * 100) / 100,
-          );
+          renderChart(data);
+          renderAccuracyTable(data.accuracy_table, horizon);
 
-          // Destroy previous chart if exists
-          if (chartInstance) chartInstance.destroy();
-
-          document.getElementById("chart-title").textContent =
-            `${data.ticker} — 365-Day Price Forecast`;
-
-          chartInstance = new Chart(document.getElementById("myChart"), {
-            type: "line",
-            data: {
-              labels,
-              datasets: [
-                {
-                  label: "Predicted Price",
-                  data: predicted,
-                  borderColor: "#4f46e5",
-                  borderWidth: 2,
-                  pointRadius: 0,
-                  tension: 0.3,
-                },
-                {
-                  label: "Upper Bound",
-                  data: upper,
-                  borderColor: "transparent",
-                  backgroundColor: "rgba(79, 70, 229, 0.1)",
-                  pointRadius: 0,
-                  fill: "+1",
-                },
-                {
-                  label: "Lower Bound",
-                  data: lower,
-                  borderColor: "transparent",
-                  backgroundColor: "rgba(79, 70, 229, 0.1)",
-                  pointRadius: 0,
-                  fill: false,
-                },
-              ],
-            },
-            options: {
-              responsive: true,
-              plugins: {
-                legend: { display: true },
-              },
-              scales: {
-                x: {
-                  ticks: {
-                    maxTicksLimit: 8,
-                    maxRotation: 0,
-                  },
-                },
-                y: {
-                  ticks: {
-                    callback: (value) => "$" + value.toLocaleString(),
-                  },
-                },
-              },
-            },
-          });
-
-          chartContainer.style.display = "block";
+          resultsArea.classList.remove("hidden");
           status.textContent = "";
         } catch (err) {
           error.textContent =
             "Could not connect to the server. Make sure app.py is running.";
         } finally {
           btn.disabled = false;
-          btn.textContent = "Predict";
+          btn.textContent = "Run forecast";
         }
       }
 
-      // Allow pressing Enter to trigger prediction
-      document
-        .getElementById("ticker")
-        .addEventListener("keydown", function (e) {
-          if (e.key === "Enter") predict();
+      function renderChart(data) {
+        const historyLabels = data.history.map((d) => d.ds);
+        const historyValues = data.history.map(
+          (d) => Math.round(d.y * 100) / 100,
+        );
+
+        const forecastLabels = data.forecast.map((d) => d.ds);
+        const forecastValues = data.forecast.map(
+          (d) => Math.round(d.yhat * 100) / 100,
+        );
+        const lower = data.forecast.map(
+          (d) => Math.round(d.yhat_lower * 100) / 100,
+        );
+        const upper = data.forecast.map(
+          (d) => Math.round(d.yhat_upper * 100) / 100,
+        );
+
+        const labels = [...historyLabels, ...forecastLabels];
+        const historyPadded = [
+          ...historyValues,
+          ...Array(forecastLabels.length).fill(null),
+        ];
+        const forecastPadded = [
+          ...Array(historyLabels.length - 1).fill(null),
+          historyValues[historyValues.length - 1],
+          ...forecastValues,
+        ];
+        const lowerPadded = [
+          ...Array(historyLabels.length).fill(null),
+          ...lower,
+        ];
+        const upperPadded = [
+          ...Array(historyLabels.length).fill(null),
+          ...upper,
+        ];
+
+        if (chartInstance) chartInstance.destroy();
+
+        document.getElementById("chartTitle").textContent =
+          `${data.ticker} — ${HORIZON_LABELS[data.horizon]} forecast`;
+
+        const horizonMetric = data.accuracy_table.find(
+          (r) => r.horizon === data.horizon,
+        );
+        if (horizonMetric) {
+          const badge = mapeBadge(horizonMetric.mape);
+          const badgeEl = document.getElementById("confidenceBadge");
+          badgeEl.textContent = `${badge.text} · ${horizonMetric.mape}% MAPE`;
+          badgeEl.className = "badge " + badge.cls;
+        }
+
+        chartInstance = new Chart(document.getElementById("myChart"), {
+          type: "line",
+          data: {
+            labels,
+            datasets: [
+              {
+                label: "Historical price",
+                data: historyPadded,
+                borderColor: "#8b9099",
+                borderWidth: 1.5,
+                pointRadius: 0,
+                tension: 0.25,
+              },
+              {
+                label: "Forecast",
+                data: forecastPadded,
+                borderColor: "#5b8def",
+                borderWidth: 2,
+                pointRadius: 0,
+                tension: 0.25,
+              },
+              {
+                label: "Upper bound",
+                data: upperPadded,
+                borderColor: "transparent",
+                backgroundColor: "rgba(91, 141, 239, 0.10)",
+                pointRadius: 0,
+                fill: "+1",
+              },
+              {
+                label: "Lower bound",
+                data: lowerPadded,
+                borderColor: "transparent",
+                backgroundColor: "rgba(91, 141, 239, 0.10)",
+                pointRadius: 0,
+                fill: false,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            interaction: { mode: "index", intersect: false },
+            plugins: {
+              legend: {
+                labels: {
+                  color: "#8b9099",
+                  usePointStyle: true,
+                  boxWidth: 8,
+                  font: { size: 11.5 },
+                },
+              },
+            },
+            scales: {
+              x: {
+                ticks: {
+                  color: "#8b9099",
+                  maxTicksLimit: 8,
+                  maxRotation: 0,
+                  font: { size: 11 },
+                },
+                grid: { color: "#1b1f24" },
+              },
+              y: {
+                ticks: {
+                  color: "#8b9099",
+                  callback: (v) => "$" + v.toLocaleString(),
+                  font: { size: 11 },
+                },
+                grid: { color: "#1b1f24" },
+              },
+            },
+          },
         });
+      }
+
+      function renderAccuracyTable(table, selectedHorizon) {
+        const tbody = document.getElementById("accuracyBody");
+        tbody.innerHTML = "";
+
+        const sorted = [...table].sort((a, b) => a.horizon - b.horizon);
+
+        sorted.forEach((row) => {
+          const tr = document.createElement("tr");
+          if (row.horizon === selectedHorizon) tr.className = "active-row";
+
+          tr.innerHTML = `
+        <td class="horizon-label">${HORIZON_LABELS[row.horizon] || row.horizon + " days"}</td>
+        <td><span class="mape-pill" style="${mapePillColor(row.mape)}">${row.mape}%</span></td>
+        <td>$${row.mae}</td>
+        <td>$${row.rmse}</td>
+      `;
+          tbody.appendChild(tr);
+        });
+      }
     </script>
   </body>
 </html>
