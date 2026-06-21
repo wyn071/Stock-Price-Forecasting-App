@@ -41,19 +41,45 @@
       }
 
       header {
-        margin-bottom: 28px;
+        text-align: center;
+        margin-bottom: 40px;
+        padding-top: 12px;
       }
 
       header h1 {
-        font-size: 22px;
-        font-weight: 600;
-        letter-spacing: -0.01em;
+        font-size: 38px;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        line-height: 1.15;
+        background: linear-gradient(
+          135deg,
+          #ffffff 0%,
+          #aebbcc 60%,
+          #5b8def 100%
+        );
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
       }
 
       header p {
         color: var(--text-secondary);
-        font-size: 13.5px;
-        margin-top: 6px;
+        font-size: 15px;
+        margin-top: 12px;
+        white-space: nowrap;
+      }
+
+      @media (max-width: 640px) {
+        header h1 {
+          font-size: 24px;
+        }
+        header p {
+          font-size: 12px;
+          white-space: normal;
+          max-width: 320px;
+          margin-left: auto;
+          margin-right: auto;
+        }
       }
 
       .panel {
@@ -288,10 +314,34 @@
       }
 
       footer {
+        margin-top: 48px;
+        padding-top: 24px;
+        border-top: 1px solid var(--panel-border);
         text-align: center;
+      }
+
+      footer .disclaimer {
         color: var(--text-secondary);
         font-size: 12px;
-        margin-top: 32px;
+        line-height: 1.6;
+        max-width: 520px;
+        margin: 0 auto;
+      }
+
+      footer .credit {
+        margin-top: 18px;
+        font-size: 12.5px;
+        color: var(--text-secondary);
+        letter-spacing: 0.01em;
+      }
+
+      footer .credit span {
+        color: var(--text-primary);
+        font-weight: 600;
+        background: linear-gradient(135deg, #ffffff 0%, #5b8def 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
       }
     </style>
   </head>
@@ -348,7 +398,7 @@
 
           <div class="stat-cards">
             <div class="stat-card">
-              <div class="stat-label">Last Close</div>
+              <div class="stat-label">Latest closing price</div>
               <div class="stat-value" id="currentPriceVal">—</div>
               <div class="stat-sub" id="currentPriceDate">—</div>
             </div>
@@ -392,8 +442,11 @@
       </div>
 
       <footer>
-        Predictions are based on historical price patterns only and do not
-        account for news, earnings, or market events. Not financial advice.
+        <p class="disclaimer">
+          Predictions are based on historical price patterns only and do not
+          account for news, earnings, or market events. Not financial advice.
+        </p>
+        <p class="credit">Made by <span>Sheena Ocon</span></p>
       </footer>
     </div>
 
