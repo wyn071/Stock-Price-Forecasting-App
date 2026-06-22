@@ -434,7 +434,7 @@
           <p class="accuracy-note">
             Each row trains Prophet on all data up to a cutoff date, then checks
             its prediction against what actually happened. Shorter horizons are
-            consistently more reliable — error compounds the further into the
+            consistently more reliable, error compounds the further into the
             future the model is asked to predict.
           </p>
           <table id="accuracyTable">
@@ -498,7 +498,7 @@
 
         btn.disabled = true;
         btn.textContent = "Running forecast...";
-        status.textContent = "Fetching data. This can take a minute...";
+        status.textContent = "This can take a minute...";
 
         try {
           const response = await fetch("/predict", {
