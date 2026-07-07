@@ -182,6 +182,10 @@ def predict():
         "summary": summary
     })
 
+# Old
+# if __name__ == "__main__":
+#     app.run(debug=True)
 
+# Making ts accessible from outside the container
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=7860, debug=False)
